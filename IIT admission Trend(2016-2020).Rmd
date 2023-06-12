@@ -1,0 +1,129 @@
+---
+title: "IIT Admission Trend (2016-2022"
+author: "Kamleshwar"
+date: "2023-06-12"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Project
+I analyse admission trend, not only of India's but worlds best insitute IIT from 2016 to 2022
+
+## Reading data
+
+```{r cars}
+library(dplyr)
+library(ggplot2)
+library(plotrix)
+setwd("C:/Users/Admin/Downloads/archive/")
+csv<- read.csv("student_data.csv",header = TRUE, sep = ",")
+csv_tbl<- as_tibble(csv)
+head(csv_tbl)
+#to see all column heading
+colnames(csv)
+```
+
+## Creating new column
+we create new column that we use for analysis
+```{r}
+#adding new column in dataset
+discount_percentage<- (csv$Discount.on.Fees/csv$Fees)*100
+discount_percentage<- round(discount_percentage,2)
+csv$discount_percentage<-(discount_percentage)
+#again checking all column heading
+colnames(csv)
+```
+
+## Admision per year
+Now we check admission taken per year in IIT
+```{r}
+admission_per_year<-(count(group_by(csv,Year.of.Admission)))
+print(admission_per_year)
+```
+
+now we plot the graph
+
+## Including Plots
+```{r, echo=FALSE}
+ggplot(admission_per_year, aes(x = Year.of.Admission, y = n)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  labs(title = "IIT Admission Trend (2016-2022)",
+       x = "Year of Admission", y = "Number of Admissions") +
+  geom_text(aes(label = n), hjust = 0.5, vjust = 20, color = "white") +
+  theme_minimal()
+```
+
+as we can see admission taken per year is almost around at 28,000
+
+## Poular Department
+Now we check which department have most student
+```{r}
+field_with_most_students<-(count(group_by(csv,Field.of.Study)))
+print(field_with_most_students)
+```
+
+lets plot graph
+
+```{r,echo=FALSE}
+ggplot(field_with_most_students, aes(x = Field.of.Study, y = n)) +
+  geom_bar(stat = "identity", fill = "grey") +
+  labs(title = "IIT Admission Trend (2016-2022)",
+       x = "Branch", y = "Number of Admissions") +
+  geom_text(aes(label = n), hjust = 0.5, vjust = 20, color = "white") +
+  theme_minimal()
+```
+
+now we check pie chart but firt we create a data frame that calculate percentage
+
+```{r}
+department_percentage= (field_with_most_students$n/sum(field_with_most_students$n))*100
+department_percentage=round(department_percentage,2)
+department_percentage<-data.frame(Department = field_with_most_students$Field.of.Study, Percentage = department_percentage)
+department_percentage
+```
+
+now let see pie chart
+
+```{r,echo=FALSE}
+pie3D(department_percentage$Percentage,
+      labels = department_percentage$Percentage,
+      col = rainbow(length(department_percentage$Percentage)))
+legend("bottomright", department_percentage$Department,
+       cex = 0.5, fill = rainbow(length(department_percentage$Percentage)))
+
+```
+
+## Comparing Fess and Discount
+```{r,echo=FALSE}
+# Create scatter plot
+pairs(~Fees + Discount.on.Fees, data = csv,
+      col.axis = "darkgreen")
+
+```
+
+now we check maximum and minimun fees and discount respectivly but first we have to create a dat frame
+
+```{r}
+data <- data.frame(
+  category = c("Fees", "Discount"),
+  value = c(max(csv$Fees), max(csv$Discount.on.Fees)),
+  ymin = c(min(csv$Fees), min(csv$Discount.on.Fees)),
+  ymax = c(max(csv$Fees), max(csv$Discount.on.Fees))
+)
+```
+
+```{r,echo=FALSE}
+ggplot(data, aes(x = category, y = value)) +
+  geom_bar(stat = "identity", fill = "gray") +
+  geom_errorbar(aes(ymin = ymin, ymax = ymax), width = 1.5, color = "red") +
+  labs(title = "Maximum and Minimum Fees and Discounts",
+       x = "Category", y = "Value") +
+  theme_minimal()
+
+```
+
